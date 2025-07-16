@@ -1,4 +1,3 @@
-// components/ModelViewer.js
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { STLLoader } from "three-stdlib";
@@ -6,6 +5,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 export default function ModelViewer({ file }) {
   const mountRef = useRef();
+  let modelCenter = null;
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -54,10 +54,16 @@ export default function ModelViewer({ file }) {
     ground.rotation.x = -Math.PI / 2;
 
     const handleResize = () => {
-      camera.aspect = width / height;
+      camera.aspect = mount.clientWidth / mount.clientHeight;
       camera.updateProjectionMatrix();
-      renderer.setSize(width, height);
+      renderer.setSize(mount.clientWidth, mount.clientHeight);
+      if (modelCenter) {
+        camera.lookAt(modelCenter);
+        controls.target.copy(modelCenter);
+        controls.update();
+      }
     };
+
     window.addEventListener("resize", handleResize);
 
     // Adding OrbitControls
@@ -83,6 +89,7 @@ export default function ModelViewer({ file }) {
         const box = new THREE.Box3().setFromObject(mesh);
         const size = box.getSize(new THREE.Vector3());
         const center = box.getCenter(new THREE.Vector3());
+        modelCenter = center;
 
         // Adjust ground position
         const minY = box.min.y;
